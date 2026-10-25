@@ -1,0 +1,11 @@
+services:
+  sales-report:
+    build: .
+    container_name: sales-report
+    ports:
+      - "6080:6080"   # open in browser
+      - "5900:5900"   # optional: native VNC client
+    volumes:
+      # Whole project dir is mounted: app.py, json/, *.xlsx inputs + outputs
+      - .:/app
+    restart: unless-stopped
