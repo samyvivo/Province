@@ -92,7 +92,7 @@ PROVINCE_CONFIGS = {
             "seller":      "نام ويزيتور",
             "customer":    "نام خريدار",
             "product":     "نام کالا",
-            "quantity":    "تعداد",
+            "quantity":    ["تعداد", "مقدار"],
             "varanegar_code": None,
         },
         "code_from_name": True,
@@ -1174,9 +1174,14 @@ def process_province(province_key, source_path, report_path, log_cb=None, error_
         def _find_col(name):
             if not name:
                 return None
-            name_clean = str(name).strip()
+            # accept str OR list/tuple of alternatives
+            names = name if isinstance(name, (list, tuple)) else [name]
+            cleaned = {str(n).strip() for n in names
+                    if n is not None and str(n).strip()}
+            if not cleaned:
+                return None
             for c in df.columns:
-                if c.strip() == name_clean:
+                if str(c).strip() in cleaned:
                     return c
             return None
 
@@ -1188,7 +1193,10 @@ def process_province(province_key, source_path, report_path, log_cb=None, error_
         missing = []
         for key in cfg["required"]:
             if col_map.get(key) is None:
-                missing.append(col.get(key) or key)
+                val = col.get(key) or key
+                if isinstance(val, (list, tuple)):
+                    val = " یا ".join(str(v) for v in val)
+                missing.append(str(val))
         if missing:
             if error_cb: error_cb(f"❌ ستون‌های زیر در فایل {cfg['label']} یافت نشدند:\n{', '.join(missing)}")
             return False, []
